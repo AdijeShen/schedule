@@ -3,6 +3,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import { Box, Container, Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
 import { ListAlt, ViewModule, CalendarMonth, AccessTime } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
+import RequestToast from './components/RequestToast';
 
 // 导入页面组件
 import TaskList from './pages/TaskList';
@@ -26,6 +27,7 @@ function App() {
 
   return (
     <Container maxWidth="lg" sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <RequestToast />
       <Box sx={{ flexGrow: 1, overflow: 'auto', py: 2 }}>
         <Routes>
           <Route path="/" element={<TaskList />} />

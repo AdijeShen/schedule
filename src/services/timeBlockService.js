@@ -76,8 +76,9 @@ export const updateTimeBlocks = async (date, blocks) => {
 // 获取所有时间块标签
 export const getTimeBlockLabels = async () => {
   try {
-    const labels = await localforage.getItem('time-block-labels');
-    return labels || [];
+    const response = await fetch(`${API_BASE_URL}/time-block-labels`);
+    if (!response.ok) throw new Error('获取时间块标签失败');
+    return await response.json();
   } catch (error) {
     console.error('获取时间块标签失败:', error);
     return [];
@@ -87,15 +88,15 @@ export const getTimeBlockLabels = async () => {
 // 添加时间块标签
 export const addTimeBlockLabel = async (label) => {
   try {
-    const labels = await getTimeBlockLabels();
-    const newLabel = {
-      id: uuidv4(),
-      createdAt: new Date().toISOString(),
-      ...label
-    };
-    labels.push(newLabel);
-    await localforage.setItem('time-block-labels', labels);
-    return newLabel;
+    const response = await fetch(`${API_BASE_URL}/time-block-labels`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(label)
+    });
+    if (!response.ok) throw new Error('添加时间块标签失败');
+    return await response.json();
   } catch (error) {
     console.error('添加时间块标签失败:', error);
     throw error;
@@ -105,9 +106,10 @@ export const addTimeBlockLabel = async (label) => {
 // 删除时间块标签
 export const deleteTimeBlockLabel = async (labelId) => {
   try {
-    const labels = await getTimeBlockLabels();
-    const filteredLabels = labels.filter(label => label.id !== labelId);
-    await localforage.setItem('time-block-labels', filteredLabels);
+    const response = await fetch(`${API_BASE_URL}/time-block-labels/${labelId}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok && response.status !== 204) throw new Error('删除时间块标签失败');
     return true;
   } catch (error) {
     console.error('删除时间块标签失败:', error);

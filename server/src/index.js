@@ -1,24 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { Sequelize } from 'sequelize';
-
-// 初始化数据库连接
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: './database.sqlite'
-});
-
-// 测试数据库连接
-async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log('数据库连接成功。');
-  } catch (error) {
-    console.error('无法连接到数据库:', error);
-  }
-}
-
-testConnection();
+import { sequelize } from './config/database.js';
 
 // 创建Express应用
 const app = express();
@@ -30,10 +12,12 @@ app.use(express.json());
 // 导入路由
 import taskRoutes from './routes/tasks.js';
 import timeBlockRoutes from './routes/timeBlocks.js';
+import timeBlockLabelRoutes from './routes/timeBlockLabels.js';
 
 // 使用路由
 app.use('/api/tasks', taskRoutes);
 app.use('/api/time-blocks', timeBlockRoutes);
+app.use('/api/time-block-labels', timeBlockLabelRoutes);
 
 // 设置端口
 const PORT = process.env.PORT || 3001;

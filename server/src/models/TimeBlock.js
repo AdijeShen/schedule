@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../index.js';
+import { sequelize } from '../config/database.js';
 
 const TimeBlock = sequelize.define('TimeBlock', {
   id: {
@@ -31,11 +31,12 @@ const TimeBlock = sequelize.define('TimeBlock', {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
   }
-});
-
-// 添加联合唯一约束，确保每个日期的每个时间块只有一条记录
-TimeBlock.addIndex(['date', 'blockIndex'], {
-  unique: true
+}, {
+  // 添加联合唯一索引，确保每个日期的每个时间块只有一条记录
+  indexes: [{
+    unique: true,
+    fields: ['date', 'blockIndex']
+  }]
 });
 
 // 同步模型到数据库
