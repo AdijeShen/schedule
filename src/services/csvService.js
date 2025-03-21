@@ -4,14 +4,16 @@ import { getAllTasks, addTask } from './taskService';
 export const exportTasksToCSV = async () => {
   try {
     const tasks = await getAllTasks();
-    const headers = ['标题', '描述', '类型', '开始时间', '截止时间', '创建时间'];
+    const headers = ['ID', '标题', '描述', '类型', '开始时间', '截止时间', '创建时间', '状态'];
     const rows = tasks.map(task => [
+      task.id,
       task.title,
       task.description,
       task.type,
       task.startTime || '',
       task.dueDate,
-      task.createdAt
+      task.createdAt,
+      task.status || 'pending'
     ]);
 
     const csvContent = [
@@ -44,17 +46,23 @@ export const importTasksFromCSV = async (file) => {
       );
       
       return {
-        title: values[0],
-        description: values[1],
-        type: values[2],
-        startTime: values[3] || null,
-        dueDate: values[4],
-        createdAt: values[5]
+        id: values[0],
+        title: values[1],
+        description: values[2],
+        type: values[3],
+        startTime: values[4] || null,
+        dueDate: values[5],
+        createdAt: values[6],
+        status: values[7] || 'pending'
       };
     });
 
     for (const task of tasks) {
-      await addTask(task);
+      // 检查任务是否已存在
+      const existingTask = await fetch(`${API_BASE_URL}/tasks/${task.id}`).then(res => res.ok ? res.json() : null);
+      if (!existingTask) {
+        await addTask(task);
+      }
     }
 
     return tasks.length;

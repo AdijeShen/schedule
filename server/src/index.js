@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { sequelize } from './config/database.js';
+import sequelize from './config/database.js';
 
 // 创建Express应用
 const app = express();
@@ -13,11 +13,13 @@ app.use(express.json());
 import taskRoutes from './routes/tasks.js';
 import timeBlockRoutes from './routes/timeBlocks.js';
 import timeBlockLabelRoutes from './routes/timeBlockLabels.js';
+import reminderRoutes from './routes/reminders.js';
 
 // 使用路由
 app.use('/api/tasks', taskRoutes);
 app.use('/api/time-blocks', timeBlockRoutes);
 app.use('/api/time-block-labels', timeBlockLabelRoutes);
+app.use('/api/reminders', reminderRoutes);
 
 // 设置端口
 const PORT = process.env.PORT || 3001;
@@ -26,6 +28,3 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`服务器运行在端口 ${PORT}`);
 });
-
-// 导出sequelize实例供模型使用
-export { sequelize };

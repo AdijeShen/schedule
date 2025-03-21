@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Grid, Tooltip, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
+import { Box, Paper, Typography, Grid, Tooltip, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, IconButton } from '@mui/material';
+import { ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -24,6 +25,7 @@ function TimeBlockView() {
     const [noteDialogOpen, setNoteDialogOpen] = useState(false);
     const [currentNote, setCurrentNote] = useState('');
     const [colorStats, setColorStats] = useState({});
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         loadTimeBlocks();
@@ -99,6 +101,32 @@ function TimeBlockView() {
         return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}-${nextHour.toString().padStart(2, '0')}:${nextMinute.toString().padStart(2, '0')}`;
     };
 
+    const handleMouseDown = (index) => {
+        setIsDragging(true);
+        handleBlockClick(index);
+    };
+
+    const handleMouseEnter = async (index) => {
+        if (isDragging) {
+            setTimeBlocks(prevBlocks => {
+                const newBlocks = [...prevBlocks];
+                const currentBlock = newBlocks[index];
+                const newStatus = currentColor;
+                newBlocks[index] = { ...currentBlock, status: newStatus };
+                return newBlocks;
+            });
+        }
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    useEffect(() => {
+        document.addEventListener('mouseup', handleMouseUp);
+        return () => document.removeEventListener('mouseup', handleMouseUp);
+    }, []);
+
     return (
         <Box>
             <Typography variant="h5" gutterBottom>
@@ -107,6 +135,17 @@ function TimeBlockView() {
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
                 <Paper sx={{ p: 2, flex: 1 }}>
                     <div style={{ width: '100%', padding: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <IconButton onClick={() => setSelectedDate(selectedDate.subtract(1, 'month'))}>
+                                <ChevronLeftIcon />
+                            </IconButton>
+                            <Typography variant="h6">
+                                {selectedDate.format('YYYY年MM月')}
+                            </Typography>
+                            <IconButton onClick={() => setSelectedDate(selectedDate.add(1, 'month'))}>
+                                <ChevronRightIcon />
+                            </IconButton>
+                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
                             {['日', '一', '二', '三', '四', '五', '六'].map(day => (
                                 <div key={day} style={{ fontWeight: 'bold', padding: '0.5rem' }}>{day}</div>

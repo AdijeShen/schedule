@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Chip } from '@mui/material';
+import { Box, Paper, Typography, Card, CardContent } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
@@ -16,7 +16,7 @@ function CalendarView() {
   }, [selectedDate]);
 
   const loadTasks = async () => {
-    const dayTasks = await getTasksByDate(selectedDate);
+    const dayTasks = await getTasksByDate(selectedDate.format('YYYY-MM-DD'));
     setTasks(dayTasks);
   };
 
@@ -44,16 +44,30 @@ function CalendarView() {
               <Typography color="text.secondary">暂无任务</Typography>
             ) : (
               tasks.map((task) => (
-                <Chip
+                <Card
                   key={task.id}
-                  label={task.title}
                   sx={{
-                    backgroundColor: TaskTypeColors[task.type],
-                    color: 'white',
-                    '& .MuiChip-label': { whiteSpace: 'normal' }
+                    backgroundColor: `${TaskTypeColors[task.type]}22`,
+                    borderLeft: `4px solid ${TaskTypeColors[task.type]}`
                   }}
-                  title={task.description}
-                />
+                >
+                  <CardContent>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                      {task.title}
+                    </Typography>
+                    {task.description && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {task.description}
+                      </Typography>
+                    )}
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      开始时间: {new Date(task.startTime).toLocaleDateString()}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      截止时间: {new Date(task.dueDate).toLocaleDateString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
               ))
             )}
           </Box>

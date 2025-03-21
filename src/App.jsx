@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { Box, Container, Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
-import { ListAlt, ViewModule, CalendarMonth, AccessTime } from '@mui/icons-material';
+import { ListAlt, ViewModule, CalendarMonth, AccessTime, Notifications } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import RequestToast from './components/RequestToast';
 
@@ -10,6 +10,7 @@ import TaskList from './pages/TaskList';
 import QuadrantView from './pages/QuadrantView';
 import CalendarView from './pages/CalendarView';
 import TimeBlockView from './pages/TimeBlockView';
+import ReminderView from './pages/ReminderView';
 
 function App() {
   const [value, setValue] = useState(0);
@@ -34,6 +35,7 @@ function App() {
           <Route path="/quadrant" element={<QuadrantView />} />
           <Route path="/calendar" element={<CalendarView />} />
           <Route path="/timeblock" element={<TimeBlockView />} />
+          <Route path="/reminder" element={<ReminderView />} />
         </Routes>
       </Box>
 
@@ -68,6 +70,12 @@ function App() {
             to="/timeblock" 
             label="时间块" 
             icon={<AccessTime />} 
+          />
+          <BottomNavigationAction 
+            component={Link} 
+            to="/reminder" 
+            label="提醒" 
+            icon={<Notifications />} 
           />
         </BottomNavigation>
       </Paper>

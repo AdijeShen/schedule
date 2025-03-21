@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../index.js';
+import sequelize from '../config/database.js';
 
 const TimeBlockLabel = sequelize.define('TimeBlockLabel', {
   id: {

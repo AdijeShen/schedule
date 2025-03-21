@@ -95,9 +95,20 @@ export const deleteTask = async (taskId) => {
 // 按日期获取任务
 export const getTasksByDate = async (date) => {
   try {
-    const dateString = new Date(date).toISOString().split('T')[0];
-    const response = await fetch(`${API_BASE_URL}/tasks/date/${dateString}`);
-    if (!response.ok) throw new Error('按日期获取任务失败');
+    const allTasks = await getAllTasks();
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    return allTasks.filter(task => {
+      const startTime = new Date(task.startTime);
+      const dueDate = new Date(task.dueDate);
+      startTime.setHours(0, 0, 0, 0);
+      dueDate.setHours(0, 0, 0, 0);
+
+      return task.status !== 'completed' && 
+             startTime <= selectedDate && 
+             dueDate >= selectedDate;
+    }).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     return await response.json();
   } catch (error) {
     console.error('按日期获取任务失败:', error);

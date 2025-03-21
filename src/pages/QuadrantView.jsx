@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, Paper, Typography, Chip } from '@mui/material';
+import { Box, Grid, Paper, Typography, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { getAllTasks, TaskType, TaskTypeColors, TaskTypeNames } from '../services/taskService';
 
 function QuadrantView() {
   const [tasks, setTasks] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   useEffect(() => {
     loadTasks();
@@ -11,11 +13,21 @@ function QuadrantView() {
 
   const loadTasks = async () => {
     const allTasks = await getAllTasks();
-    setTasks(allTasks);
+    setTasks(allTasks.filter(task => task.status !== 'completed'));
   };
 
   const getQuadrantTasks = (type) => {
     return tasks.filter(task => task.type === type);
+  };
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+    setDetailDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDetailDialogOpen(false);
+    setSelectedTask(null);
   };
 
   const QuadrantBox = ({ type, title }) => (
@@ -36,12 +48,16 @@ function QuadrantView() {
         <Chip
           key={task.id}
           label={task.title}
+          onClick={() => handleTaskClick(task)}
           sx={{
             backgroundColor: TaskTypeColors[type],
             color: 'white',
-            '& .MuiChip-label': { whiteSpace: 'normal' }
+            '& .MuiChip-label': { whiteSpace: 'normal' },
+            cursor: 'pointer',
+            '&:hover': {
+              opacity: 0.9
+            }
           }}
-          title={`${task.description}\n截止日期: ${new Date(task.dueDate).toLocaleDateString()}`}
         />
       ))}
     </Paper>
@@ -78,6 +94,32 @@ function QuadrantView() {
           />
         </Grid>
       </Grid>
+
+      <Dialog open={detailDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>任务详情</DialogTitle>
+        <DialogContent>
+          {selectedTask && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+              <Typography variant="h6">{selectedTask.title}</Typography>
+              <Typography variant="body1" color="text.secondary">
+                {selectedTask.description || '暂无描述'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                开始时间: {new Date(selectedTask.startTime).toLocaleString()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                截止时间: {new Date(selectedTask.dueDate).toLocaleString()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                任务类型: {TaskTypeNames[selectedTask.type]}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>关闭</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

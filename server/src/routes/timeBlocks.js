@@ -1,5 +1,6 @@
 import express from 'express';
 import TimeBlock from '../models/TimeBlock.js';
+import { Op } from 'sequelize';
 
 const router = express.Router();
 
@@ -101,18 +102,23 @@ router.get('/stats', async (req, res) => {
       attributes: ['date', 'status'],
       where: {
         status: {
-          [TimeBlock.sequelize.Op.not]: null
+          [Op.ne]: null
         }
-      }
+      },
+      raw: true
     });
 
     const stats = {};
     blocks.forEach(block => {
-      const dateStr = block.date;
-      if (!stats[dateStr]) {
-        stats[dateStr] = {};
+      try {
+        const dateStr = block.date.split('T')[0];
+        if (!stats[dateStr]) {
+          stats[dateStr] = {};
+        }
+        stats[dateStr][block.status] = (stats[dateStr][block.status] || 0) + 1;
+      } catch (error) {
+        console.error('处理时间块日期失败:', error);
       }
-      stats[dateStr][block.status] = (stats[dateStr][block.status] || 0) + 1;
     });
 
     // 计算每个日期的主要状态
@@ -131,7 +137,7 @@ router.get('/stats', async (req, res) => {
     res.json(stats);
   } catch (error) {
     console.error('获取时间块统计失败:', error);
-    res.status(500).json({ error: '获取时间块统计失败' });
+    res.status(500).json({ error: '获取时间块统计失败', details: error.message });
   }
 });
 
