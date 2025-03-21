@@ -9,11 +9,22 @@ localforage.config({
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
+// 获取认证头
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+};
+
 // 获取指定日期的时间块
 export const getTimeBlocksByDate = async (date) => {
   try {
     const dateString = new Date(date).toISOString().split('T')[0];
-    const response = await fetch(`${API_BASE_URL}/time-blocks/date/${dateString}`);
+    const response = await fetch(`${API_BASE_URL}/time-blocks/date/${dateString}`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('获取时间块失败');
     const blocks = await response.json();
     return blocks;
@@ -29,9 +40,7 @@ export const updateTimeBlockNote = async (date, blockIndex, note) => {
     const dateString = new Date(date).toISOString().split('T')[0];
     const response = await fetch(`${API_BASE_URL}/time-blocks/date/${dateString}/block/${blockIndex}/note`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ note })
     });
     if (!response.ok) throw new Error('更新时间块备注失败');
@@ -45,7 +54,9 @@ export const updateTimeBlockNote = async (date, blockIndex, note) => {
 // 获取所有日期的时间块统计
 export const getAllTimeBlockStats = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/time-blocks/stats`);
+    const response = await fetch(`${API_BASE_URL}/time-blocks/stats`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('获取时间块统计失败');
     return await response.json();
   } catch (error) {
@@ -60,9 +71,7 @@ export const updateTimeBlocks = async (date, blocks) => {
     const dateString = new Date(date).toISOString().split('T')[0];
     const response = await fetch(`${API_BASE_URL}/time-blocks/date/${dateString}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(blocks)
     });
     if (!response.ok) throw new Error('更新时间块失败');
@@ -76,7 +85,9 @@ export const updateTimeBlocks = async (date, blocks) => {
 // 获取所有时间块标签
 export const getTimeBlockLabels = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/time-block-labels`);
+    const response = await fetch(`${API_BASE_URL}/time-block-labels`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('获取时间块标签失败');
     return await response.json();
   } catch (error) {
@@ -90,9 +101,7 @@ export const addTimeBlockLabel = async (label) => {
   try {
     const response = await fetch(`${API_BASE_URL}/time-block-labels`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(label)
     });
     if (!response.ok) throw new Error('添加时间块标签失败');
@@ -107,7 +116,8 @@ export const addTimeBlockLabel = async (label) => {
 export const deleteTimeBlockLabel = async (labelId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/time-block-labels/${labelId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     if (!response.ok && response.status !== 204) throw new Error('删除时间块标签失败');
     return true;

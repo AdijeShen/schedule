@@ -7,6 +7,10 @@ const Task = sequelize.define('Task', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true
     },
+    userId: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
     title: {
         type: DataTypes.STRING,
         allowNull: false
@@ -41,7 +45,7 @@ const Task = sequelize.define('Task', {
     }
 });
 
-// 同步模型到数据库
-Task.sync();
+// 移除单独的同步调用
+// Task.sync({ alter: true });
 
 export default Task;

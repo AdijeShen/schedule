@@ -25,7 +25,7 @@ const TimeBlockLabel = sequelize.define('TimeBlockLabel', {
   }
 });
 
-// 同步模型到数据库
-TimeBlockLabel.sync();
+// 移除单独的同步调用
+// TimeBlockLabel.sync();
 
 export default TimeBlockLabel;

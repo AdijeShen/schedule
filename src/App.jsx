@@ -1,9 +1,11 @@
 import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { Box, Container, Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
 import { ListAlt, ViewModule, CalendarMonth, AccessTime, Notifications } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import RequestToast from './components/RequestToast';
+import LoginRegister from './pages/LoginRegister';
+import AppHeader from './components/AppHeader';
 
 // 导入页面组件
 import TaskList from './pages/TaskList';
@@ -12,9 +14,22 @@ import CalendarView from './pages/CalendarView';
 import TimeBlockView from './pages/TimeBlockView';
 import ReminderView from './pages/ReminderView';
 
+// 受保护的路由组件
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  const location = useLocation();
+
+  if (!token) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
 function App() {
   const [value, setValue] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
+  const token = localStorage.getItem('token');
 
   // 监听窗口大小变化以响应式调整布局
   useEffect(() => {
@@ -29,13 +44,35 @@ function App() {
   return (
     <Container maxWidth="lg" sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <RequestToast />
+      <AppHeader />
       <Box sx={{ flexGrow: 1, overflow: 'auto', py: 2 }}>
         <Routes>
-          <Route path="/" element={<TaskList />} />
-          <Route path="/quadrant" element={<QuadrantView />} />
-          <Route path="/calendar" element={<CalendarView />} />
-          <Route path="/timeblock" element={<TimeBlockView />} />
-          <Route path="/reminder" element={<ReminderView />} />
+          <Route path="/login" element={<LoginRegister />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <TaskList />
+            </ProtectedRoute>
+          } />
+          <Route path="/quadrant" element={
+            <ProtectedRoute>
+              <QuadrantView />
+            </ProtectedRoute>
+          } />
+          <Route path="/calendar" element={
+            <ProtectedRoute>
+              <CalendarView />
+            </ProtectedRoute>
+          } />
+          <Route path="/timeblock" element={
+            <ProtectedRoute>
+              <TimeBlockView />
+            </ProtectedRoute>
+          } />
+          <Route path="/reminder" element={
+            <ProtectedRoute>
+              <ReminderView />
+            </ProtectedRoute>
+          } />
         </Routes>
       </Box>
 

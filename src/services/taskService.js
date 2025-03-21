@@ -26,15 +26,31 @@ export const TaskTypeNames = {
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
+// 获取认证头部
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+};
+
 // 获取所有任务
 export const getAllTasks = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/tasks`);
-    if (!response.ok) throw new Error('获取任务失败');
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('未登录或登录已过期');
+      }
+      throw new Error('获取任务失败');
+    }
     return await response.json();
   } catch (error) {
     console.error('获取任务失败:', error);
-    return [];
+    throw error;
   }
 };
 
@@ -43,16 +59,19 @@ export const addTask = async (task) => {
   try {
     const response = await fetch(`${API_BASE_URL}/tasks`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         ...task,
         id: uuidv4(),
         createdAt: new Date().toISOString()
       })
     });
-    if (!response.ok) throw new Error('添加任务失败');
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('未登录或登录已过期');
+      }
+      throw new Error('添加任务失败');
+    }
     return await response.json();
   } catch (error) {
     console.error('添加任务失败:', error);
@@ -65,12 +84,15 @@ export const updateTask = async (taskId, updatedData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(updatedData)
     });
-    if (!response.ok) throw new Error('更新任务失败');
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('未登录或登录已过期');
+      }
+      throw new Error('更新任务失败');
+    }
     return await response.json();
   } catch (error) {
     console.error('更新任务失败:', error);
@@ -82,9 +104,15 @@ export const updateTask = async (taskId, updatedData) => {
 export const deleteTask = async (taskId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
-    if (!response.ok && response.status !== 204) throw new Error('删除任务失败');
+    if (!response.ok && response.status !== 204) {
+      if (response.status === 401) {
+        throw new Error('未登录或登录已过期');
+      }
+      throw new Error('删除任务失败');
+    }
     return true;
   } catch (error) {
     console.error('删除任务失败:', error);
@@ -98,20 +126,13 @@ export const getTasksByDate = async (date) => {
     const allTasks = await getAllTasks();
     const selectedDate = new Date(date);
     selectedDate.setHours(0, 0, 0, 0);
-
     return allTasks.filter(task => {
-      const startTime = new Date(task.startTime);
-      const dueDate = new Date(task.dueDate);
-      startTime.setHours(0, 0, 0, 0);
-      dueDate.setHours(0, 0, 0, 0);
-
-      return task.status !== 'completed' && 
-             startTime <= selectedDate && 
-             dueDate >= selectedDate;
-    }).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-    return await response.json();
+      const taskDate = new Date(task.dueDate);
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate.getTime() === selectedDate.getTime();
+    });
   } catch (error) {
     console.error('按日期获取任务失败:', error);
-    return [];
+    throw error;
   }
 };

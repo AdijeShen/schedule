@@ -18,8 +18,11 @@ async function testConnection() {
   try {
     await sequelize.authenticate();
     console.log('数据库连接成功。');
-    // 同步所有模型到数据库
-    await sequelize.sync({ alter: true });
+    
+    // 使用 force: true 首次运行时可用于重建数据库
+    // 生产环境中请谨慎使用，会清空所有数据!
+    // 在模型稳定后应改为 { alter: true } 或完全移除 sync 参数
+    await sequelize.sync();
     console.log('数据库模型同步成功。');
   } catch (error) {
     console.error('数据库操作失败:', error);

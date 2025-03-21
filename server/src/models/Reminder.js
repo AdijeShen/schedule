@@ -7,6 +7,10 @@ const Reminder = sequelize.define('Reminder', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false
+  },
   title: {
     type: DataTypes.STRING,
     allowNull: false
@@ -21,7 +25,7 @@ const Reminder = sequelize.define('Reminder', {
   }
 });
 
-// 同步模型到数据库
-Reminder.sync();
+// 移除单独的同步调用
+// Reminder.sync({ alter: true });
 
 export { Reminder };

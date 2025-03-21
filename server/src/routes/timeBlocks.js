@@ -1,15 +1,22 @@
 import express from 'express';
 import TimeBlock from '../models/TimeBlock.js';
 import { Op } from 'sequelize';
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+
+// 添加认证中间件
+router.use(authMiddleware);
 
 // 获取指定日期的时间块
 router.get('/date/:date', async (req, res) => {
   try {
     const date = req.params.date;
     const timeBlocks = await TimeBlock.findAll({
-      where: { date },
+      where: { 
+        date,
+        userId: req.userId
+      },
       order: [['blockIndex', 'ASC']]
     });
 
@@ -43,28 +50,28 @@ router.put('/date/:date', async (req, res) => {
     await TimeBlock.sequelize.transaction(async (t) => {
       // 删除该日期的所有时间块
       await TimeBlock.destroy({
-        where: { date },
+        where: { 
+          date,
+          userId: req.userId
+        },
         transaction: t
       });
 
       // 创建新的时间块
-      await TimeBlock.bulkCreate(
-        blocks.map((block, index) => ({
+      const newBlocks = blocks
+        .filter(block => block.status !== null)
+        .map(block => ({
+          ...block,
           date,
-          blockIndex: index,
-          status: block.status,
-          note: block.note || ''
-        })),
-        { transaction: t }
-      );
+          userId: req.userId
+        }));
+
+      if (newBlocks.length > 0) {
+        await TimeBlock.bulkCreate(newBlocks, { transaction: t });
+      }
     });
 
-    const updatedBlocks = await TimeBlock.findAll({
-      where: { date },
-      order: [['blockIndex', 'ASC']]
-    });
-
-    res.json(updatedBlocks);
+    res.json({ message: '时间块更新成功' });
   } catch (error) {
     console.error('更新时间块失败:', error);
     res.status(500).json({ error: '更新时间块失败' });
@@ -72,72 +79,56 @@ router.put('/date/:date', async (req, res) => {
 });
 
 // 更新时间块备注
-router.put('/date/:date/block/:index/note', async (req, res) => {
+router.put('/note/:date/:blockIndex', async (req, res) => {
   try {
-    const { date, index } = req.params;
+    const { date, blockIndex } = req.params;
     const { note } = req.body;
 
-    const [block] = await TimeBlock.findOrCreate({
-      where: { date, blockIndex: index },
-      defaults: {
-        status: null,
-        note: ''
+    const [updated] = await TimeBlock.update(
+      { note },
+      {
+        where: {
+          date,
+          blockIndex,
+          userId: req.userId
+        }
       }
-    });
+    );
 
-    block.note = note;
-    await block.save();
-
-    res.json(block);
+    if (updated) {
+      res.json({ message: '备注更新成功' });
+    } else {
+      res.status(404).json({ error: '时间块不存在或无权访问' });
+    }
   } catch (error) {
-    console.error('更新时间块备注失败:', error);
-    res.status(500).json({ error: '更新时间块备注失败' });
+    console.error('更新备注失败:', error);
+    res.status(500).json({ error: '更新备注失败' });
   }
 });
 
-// 获取所有日期的时间块统计
+// 获取时间块统计信息
 router.get('/stats', async (req, res) => {
   try {
-    const blocks = await TimeBlock.findAll({
-      attributes: ['date', 'status'],
-      where: {
-        status: {
-          [Op.ne]: null
-        }
-      },
-      raw: true
+    const stats = await TimeBlock.findAll({
+      where: { userId: req.userId },
+      attributes: [
+        'status',
+        [TimeBlock.sequelize.fn('COUNT', TimeBlock.sequelize.col('status')), 'count']
+      ],
+      group: ['status']
     });
 
-    const stats = {};
-    blocks.forEach(block => {
-      try {
-        const dateStr = block.date.split('T')[0];
-        if (!stats[dateStr]) {
-          stats[dateStr] = {};
-        }
-        stats[dateStr][block.status] = (stats[dateStr][block.status] || 0) + 1;
-      } catch (error) {
-        console.error('处理时间块日期失败:', error);
+    const formattedStats = stats.reduce((acc, stat) => {
+      if (stat.status !== null) {
+        acc[stat.status] = stat.get('count');
       }
-    });
+      return acc;
+    }, {});
 
-    // 计算每个日期的主要状态
-    Object.keys(stats).forEach(date => {
-      let maxStatus = null;
-      let maxCount = 0;
-      Object.entries(stats[date]).forEach(([status, count]) => {
-        if (count > maxCount) {
-          maxStatus = parseInt(status);
-          maxCount = count;
-        }
-      });
-      stats[date] = maxStatus;
-    });
-
-    res.json(stats);
+    res.json(formattedStats);
   } catch (error) {
-    console.error('获取时间块统计失败:', error);
-    res.status(500).json({ error: '获取时间块统计失败', details: error.message });
+    console.error('获取统计信息失败:', error);
+    res.status(500).json({ error: '获取统计信息失败' });
   }
 });
 

@@ -7,6 +7,10 @@ const TimeBlock = sequelize.define('TimeBlock', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false
+  },
   date: {
     type: DataTypes.DATEONLY,
     allowNull: false
@@ -32,14 +36,14 @@ const TimeBlock = sequelize.define('TimeBlock', {
     defaultValue: DataTypes.NOW
   }
 }, {
-  // 添加联合唯一索引，确保每个日期的每个时间块只有一条记录
+  // 添加联合唯一索引，确保每个用户的每个日期的每个时间块只有一条记录
   indexes: [{
     unique: true,
-    fields: ['date', 'blockIndex']
+    fields: ['userId', 'date', 'blockIndex']
   }]
 });
 
-// 同步模型到数据库
-TimeBlock.sync();
+// 移除单独的同步调用
+// TimeBlock.sync({ alter: true });
 
 export default TimeBlock;
