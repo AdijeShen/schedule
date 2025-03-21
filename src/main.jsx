@@ -5,6 +5,10 @@ import App from './App';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { zhCN } from '@mui/material/locale';
+import { logEnvironment } from './utils/env';
+
+// 记录环境信息
+logEnvironment();
 
 // 创建主题
 const theme = createTheme({

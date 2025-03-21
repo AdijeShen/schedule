@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { API_URL } from '../utils/env';
 
 // 任务类型枚举
 export const TaskType = {
@@ -24,7 +25,7 @@ export const TaskTypeNames = {
   [TaskType.NOT_URGENT_NOT_IMPORTANT]: '不紧急不重要'
 };
 
-const API_BASE_URL = 'http://localhost:3001/api';
+export const API_BASE_URL = API_URL;
 
 // 获取认证头部
 const getAuthHeaders = () => {
@@ -126,10 +127,20 @@ export const getTasksByDate = async (date) => {
     const allTasks = await getAllTasks();
     const selectedDate = new Date(date);
     selectedDate.setHours(0, 0, 0, 0);
+    
     return allTasks.filter(task => {
-      const taskDate = new Date(task.dueDate);
-      taskDate.setHours(0, 0, 0, 0);
-      return taskDate.getTime() === selectedDate.getTime();
+      // 获取任务的开始时间和截止时间
+      const taskStartDate = new Date(task.startTime);
+      const taskDueDate = new Date(task.dueDate);
+      
+      // 设置时间为 00:00:00 以便于日期比较
+      taskStartDate.setHours(0, 0, 0, 0);
+      taskDueDate.setHours(0, 0, 0, 0);
+      
+      // 如果所选日期在任务的开始日期和截止日期之间（包括开始日期和截止日期当天），则返回 true
+      return (
+        (taskStartDate.getTime() <= selectedDate.getTime() && selectedDate.getTime() <= taskDueDate.getTime())
+      );
     });
   } catch (error) {
     console.error('按日期获取任务失败:', error);

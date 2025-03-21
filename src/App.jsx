@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react';
 import RequestToast from './components/RequestToast';
 import LoginRegister from './pages/LoginRegister';
 import AppHeader from './components/AppHeader';
+import { initReminderManager, cleanupReminderManager } from './services/reminderManager';
+import { logEnvironment } from './utils/env';
 
 // 导入页面组件
 import TaskList from './pages/TaskList';
@@ -29,7 +31,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   const [value, setValue] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
-  const token = localStorage.getItem('token');
+  const location = useLocation();
 
   // 监听窗口大小变化以响应式调整布局
   useEffect(() => {
@@ -39,6 +41,29 @@ function App() {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // 初始化环境
+  useEffect(() => {
+    logEnvironment();
+  }, []);
+
+  // 初始化提醒管理器
+  useEffect(() => {
+    // 只有在用户已登录的情况下初始化提醒管理器
+    const token = localStorage.getItem('token');
+    if (token) {
+      console.log('初始化提醒管理器...');
+      initReminderManager().catch(err => {
+        console.error('初始化提醒管理器失败:', err);
+      });
+    }
+
+    // 组件卸载时清理
+    return () => {
+      console.log('清理提醒管理器...');
+      cleanupReminderManager();
+    };
   }, []);
 
   return (

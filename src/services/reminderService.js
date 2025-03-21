@@ -1,4 +1,7 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_URL } from '../utils/env';
+
+// API 基础路径
+const API_BASE_URL = API_URL;
 
 // 获取认证头
 const getAuthHeaders = () => {

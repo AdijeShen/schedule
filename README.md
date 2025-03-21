@@ -12,15 +12,21 @@ A comprehensive task management and time planning application that helps users o
 
 - **Time Block Management**
   - Visual time block grid for daily planning
-  - Assign tasks to specific time blocks
-  - Track time block status
+  - Color-coded time blocks for status tracking
+  - Daily summary with rating and reflection
   - Add notes to time blocks
+
+- **Reminder System**
+  - Set reminders for important events
+  - Desktop notifications
+  - Custom repeat intervals
 
 - **Multiple Views**
   - Task List View
   - Calendar View
   - Quadrant View (Eisenhower Matrix)
   - Time Block View
+  - Reminder View
 
 ## Tech Stack
 
@@ -35,6 +41,7 @@ A comprehensive task management and time planning application that helps users o
 - Express.js
 - SQLite database
 - Sequelize ORM
+- JWT Authentication
 
 ## Installation
 
@@ -42,7 +49,6 @@ A comprehensive task management and time planning application that helps users o
 
 2. Install frontend dependencies:
 ```bash
-cd schedule
 npm install
 ```
 
@@ -66,7 +72,33 @@ The server will run on http://localhost:3001
 cd ..
 npm run dev
 ```
-The application will be available at http://localhost:5173
+The application will be available at http://localhost:3000
+
+## Database Management
+
+The application uses SQLite with Sequelize ORM. The database structure is not automatically synchronized on server start to avoid data loss.
+
+To manage the database:
+
+1. **Sync database structure** (safe update preserving data where possible):
+```bash
+cd server
+npm run db:sync
+```
+
+2. **Reset database** (CAUTION: will delete all data):
+```bash
+cd server
+npm run db:reset
+```
+
+For more details, see the [Database Management Guide](server/DATABASE.md).
+
+## Deployment
+
+This application can be deployed to various platforms including Firebase, Vercel, or traditional hosting.
+
+For detailed deployment instructions, see the [Deployment Guide](DEPLOYMENT.md).
 
 ## Usage
 
@@ -86,14 +118,6 @@ The application will be available at http://localhost:5173
    - Modify the task details
    - Save changes
 
-3. **Deleting a Task**
-   - Click the delete icon on any task
-   - Confirm deletion
-
-4. **Importing/Exporting Tasks**
-   - Use the Import button to upload a CSV file
-   - Use the Export button to download tasks as CSV
-
 ### Time Block Management
 
 1. **Viewing Time Blocks**
@@ -101,25 +125,47 @@ The application will be available at http://localhost:5173
    - Select a date to view its time blocks
 
 2. **Managing Time Blocks**
-   - Click on a time block to edit
-   - Add notes or change status
-   - Associate tasks with time blocks
+   - Click on a time block to change its status
+   - Right-click to add notes
+   - Add daily summaries and ratings
+
+### Reminder System
+
+1. **Creating Reminders**
+   - Navigate to Reminder view
+   - Click the + button to add a new reminder
+   - Set title, date, time, and repeat interval
+
+2. **Managing Notifications**
+   - Allow browser notifications when prompted
+   - Receive alerts even when the app is in background
 
 ## Project Structure
 
 ```
 ├── src/                  # Frontend source code
 │   ├── components/       # React components
-│   ├── pages/           # Page components
-│   └── services/        # API and utility services
-├── server/              # Backend source code
+│   ├── pages/            # Page components
+│   ├── services/         # API and utility services
+│   └── utils/            # Utility functions
+├── server/               # Backend source code
 │   ├── src/
-│   │   ├── config/     # Database configuration
-│   │   ├── models/     # Sequelize models
-│   │   └── routes/     # API routes
-│   └── database.sqlite  # SQLite database file
-└── vite.config.js       # Vite configuration
+│   │   ├── config/       # Database configuration
+│   │   ├── models/       # Sequelize models
+│   │   ├── routes/       # API routes
+│   │   ├── middleware/   # Express middleware
+│   │   └── scripts/      # Utility scripts
+│   └── database.sqlite   # SQLite database file
+├── public/               # Static assets
+└── vite.config.js        # Vite configuration
 ```
+
+## Environment Configuration
+
+The application uses environment variables for configuration:
+
+- `.env` - Development environment settings
+- `.env.production` - Production environment settings
 
 ## License
 

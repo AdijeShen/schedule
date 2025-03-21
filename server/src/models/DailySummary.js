@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-const TimeBlock = sequelize.define('TimeBlock', {
+const DailySummary = sequelize.define('DailySummary', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -15,21 +15,19 @@ const TimeBlock = sequelize.define('TimeBlock', {
     type: DataTypes.DATEONLY,
     allowNull: false
   },
-  blockIndex: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  status: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  color: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  note: {
+  content: {
     type: DataTypes.TEXT,
-    allowNull: true
+    allowNull: true,
+    defaultValue: ''
+  },
+  rating: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    validate: {
+      min: 0,
+      max: 5
+    }
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -40,15 +38,11 @@ const TimeBlock = sequelize.define('TimeBlock', {
     defaultValue: DataTypes.NOW
   }
 }, {
-  // 修复联合唯一索引定义，确保正确包含所有三个字段
   indexes: [{
     unique: true,
-    fields: ['userId', 'date', 'blockIndex'],
-    name: 'unique_user_date_block' // 添加明确的索引名称
+    fields: ['userId', 'date'],
+    name: 'unique_user_date_summary'
   }]
 });
 
-// 移除单独的同步调用
-// TimeBlock.sync({ alter: true });
-
-export default TimeBlock;
+export default DailySummary; 

@@ -1,4 +1,5 @@
-import { getAllTasks, addTask } from './taskService';
+import { getAllTasks, addTask, API_BASE_URL } from './taskService';
+import { API_URL } from '../utils/env';
 
 // 将任务导出为CSV格式
 export const exportTasksToCSV = async () => {
@@ -40,32 +41,43 @@ export const importTasksFromCSV = async (file) => {
     const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
     const headers = lines[0].split(',');
 
+    // 先获取所有现有任务，用于检查重复
+    const existingTasks = await getAllTasks();
+
     const tasks = lines.slice(1).map(line => {
       const values = line.split(',').map(value => 
         value.trim().replace(/^"|"$/g, '').replace(/""/g, '"')
       );
       
+      // 注意：不导入 ID 和创建时间，让 addTask 函数自动生成新的值
       return {
-        id: values[0],
         title: values[1],
         description: values[2],
         type: values[3],
         startTime: values[4] || null,
         dueDate: values[5],
-        createdAt: values[6],
         status: values[7] || 'pending'
       };
     });
 
+    let addedCount = 0;
+    
     for (const task of tasks) {
-      // 检查任务是否已存在
-      const existingTask = await fetch(`${API_BASE_URL}/tasks/${task.id}`).then(res => res.ok ? res.json() : null);
-      if (!existingTask) {
+      // 检查任务是否已存在（通过标题、类型和截止日期的组合来确定）
+      const isDuplicate = existingTasks.some(existingTask => 
+        existingTask.title === task.title && 
+        existingTask.type === task.type && 
+        new Date(existingTask.dueDate).toDateString() === new Date(task.dueDate).toDateString()
+      );
+      
+      if (!isDuplicate) {
+        // 如果不是重复任务，则添加
         await addTask(task);
+        addedCount++;
       }
     }
 
-    return tasks.length;
+    return addedCount; // 返回实际添加的任务数量
   } catch (error) {
     console.error('导入任务失败:', error);
     throw error;
